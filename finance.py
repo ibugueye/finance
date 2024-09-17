@@ -6,13 +6,15 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout
+# Sélection des actifs (actions)
+tickers = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'META']
 
-# Téléchargement des données historiques
-data = yf.download('AAPL', start='2018-01-01', end='2023-01-01')
+# Télécharger les données de prix historiques (8 ans de données)
+data = yf.download(tickers, start='2015-01-01', end='2024-01-01')['Adj Close']
 
-# Calcul des rendements quotidiens et cumulés
-data['Daily Return'] = data['Adj Close'].pct_change()
-data['Cumulative Return'] = (1 + data['Daily Return']).cumprod()
+# Calcul des rendements quotidiens
+returns = data.pct_change().dropna()
+ 
 
 # Sommaire
 st.write("# Sommaire")
@@ -27,6 +29,14 @@ st.markdown("""
 # 1. Téléchargement des données historiques
 st.write("## 1. Téléchargement des données")
 st.write("""
+# Sélection des actifs (actions)
+tickers = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'META']
+
+# Télécharger les données de prix historiques (8 ans de données)
+data = yf.download(tickers, start='2015-01-01', end='2024-01-01')['Adj Close']
+
+# Calcul des rendements quotidiens
+returns = data.pct_change().dropna()
 ### Théorie :
 Les **données de marché** sont une base essentielle pour toutes les analyses financières. Elles incluent les prix ajustés, qui tiennent compte des événements d'entreprise comme les dividendes et les fractionnements d'actions.
 """)
@@ -51,7 +61,8 @@ st.code("""
 data['Daily Return'] = data['Adj Close'].pct_change()
 data['Cumulative Return'] = (1 + data['Daily Return']).cumprod()
 """, language='python')
-
+st.write("## 2. Calcul des Rendements")
+ 
 cumulative_returns = (1 + returns).cumprod()
 # Visualiser les rendements cumulés
 st.write("### Visualisation des Rendements Cumulés")
