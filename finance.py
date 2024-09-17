@@ -33,8 +33,11 @@ Les **données de marché** sont une base essentielle pour toutes les analyses f
 st.code("""
 import yfinance as yf
 
-# Téléchargement des données historiques de AAPL
-data = yf.download('AAPL', start='2018-01-01', end='2023-01-01')
+ 1. Téléchargement des données historiques
+st.write("## 1. Téléchargement des Données Historiques")
+st.write("### Aperçu des données")
+st.dataframe(data.head())
+
 """, language='python')
 data
 # 2. Calcul des rendements quotidiens et cumulés
@@ -49,8 +52,19 @@ data['Daily Return'] = data['Adj Close'].pct_change()
 data['Cumulative Return'] = (1 + data['Daily Return']).cumprod()
 """, language='python')
 
-data['Daily Return'] = data['Adj Close'].pct_change()
-data['Cumulative Return'] = (1 + data['Daily Return']).cumprod()
+cumulative_returns = (1 + returns).cumprod()
+# Visualiser les rendements cumulés
+st.write("### Visualisation des Rendements Cumulés")
+plt.figure(figsize=(10, 6))
+for stock in tickers:
+    plt.plot(cumulative_returns.index, cumulative_returns[stock], label=stock)
+plt.title('Rendements Cumulés des 6 entreprises')
+plt.xlabel('Date')
+plt.ylabel('Rendement Cumulé')
+plt.legend()
+st.pyplot(plt)
+
+
 
 # 3. Indicateurs clés de performance (KPI)
 st.write("## 3. Indicateurs clés de performance (KPI)")
@@ -66,17 +80,20 @@ risk_free_rate = 0.01  # Hypothèse d'un taux sans risque de 1%
 sharpe_ratio = (annual_return - risk_free_rate) / annual_volatility
 """, language='python')
 
-annual_return = data['Daily Return'].mean() * 252
-annual_volatility = data['Daily Return'].std() * np.sqrt(252)
+annual_return = returns.mean() * 252
+annual_volatility = returns.std() * np.sqrt(252)
 risk_free_rate = 0.01
 sharpe_ratio = (annual_return - risk_free_rate) / annual_volatility
 
 st.write("### Tableau des KPI")
-kpi_data = {
-    'KPI': ['Rendement annualisé', 'Volatilité annualisée', 'Ratio de Sharpe'],
-    'Valeur': [f"{annual_return:.2%}", f"{annual_volatility:.2%}", f"{sharpe_ratio:.2f}"]
-}
-st.table(pd.DataFrame(kpi_data))
+kpi_data = pd.DataFrame({
+    'Rendement Annualisé (%)': annual_return * 100,
+    'Volatilité Annualisée (%)': annual_volatility * 100,
+    'Ratio de Sharpe': sharpe_ratio
+})
+st.write("### Tableau des KPI pour chaque entreprise")
+st.table(kpi_data)
+
 
 # 4. Modèle prédictif (LSTM)
 st.write("## 4. Modèle prédictif (LSTM)")
@@ -223,6 +240,60 @@ plt.xlabel('Date')
 plt.ylabel('MACD')
 plt.legend()
 st.pyplot(plt)
+
+
+# 6. Sélection d'une entreprise pour une analyse
+st.write("## 6. Sélection d'une entreprise")
+selected_stock = st.selectbox("Choisissez une entreprise", tickers)
+
+# Visualiser le rendement cumulé de l'entreprise sélectionnée
+st.write(f"### Visualisation du rendement cumulé pour {selected_stock}")
+plt.figure(figsize=(10, 6))
+plt.plot(cumulative_returns.index, cumulative_returns[selected_stock], label=selected_stock)
+plt.title(f'Rendement cumulé de {selected_stock}')
+plt.xlabel('Date')
+plt.ylabel('Rendement Cumulé')
+plt.legend()
+st.pyplot(plt)
+
+# Affichage des KPI pour l'entreprise sélectionnée
+st.write(f"### KPI pour {selected_stock}")
+selected_kpi = kpi_data.loc[selected_stock]
+st.table(selected_kpi)
+
+# 7. Comparaison des entreprises (jusqu'à toutes les entreprises)
+st.write("## 7. Comparaison des entreprises")
+
+# Ajouter une option pour sélectionner toutes les entreprises ou un sous-ensemble
+selected_stocks = st.multiselect("Choisissez les entreprises à comparer", tickers, default=tickers)
+
+# Comparaison des rendements cumulés entre les entreprises sélectionnées
+if selected_stocks:
+    st.write(f"### Comparaison des rendements cumulés : {' vs '.join(selected_stocks)}")
+    plt.figure(figsize=(10, 6))
+    for stock in selected_stocks:
+        plt.plot(cumulative_returns.index, cumulative_returns[stock], label=stock)
+    plt.title(f'Comparaison des rendements cumulés entre {" et ".join(selected_stocks)}')
+    plt.xlabel('Date')
+    plt.ylabel('Rendement Cumulé')
+    plt.legend()
+    st.pyplot(plt)
+
+    # Comparaison des KPI entre les entreprises sélectionnées
+    st.write(f"### Comparaison des KPI : {' vs '.join(selected_stocks)}")
+    kpi_comparison = pd.DataFrame({stock: kpi_data.loc[stock] for stock in selected_stocks})
+    st.table(kpi_comparison)
+else:
+    st.warning("Veuillez sélectionner au moins une entreprise pour la comparaison.")
+
+# 8. Classement des entreprises par rendement
+st.write("## 8. Classement des entreprises par Rendement Annualisé")
+sorted_kpi_data = kpi_data.sort_values(by='Rendement Annualisé (%)', ascending=False)
+
+# Afficher les entreprises triées par rendement
+st.write("### Classement des entreprises par Rendement Annualisé")
+st.table(sorted_kpi_data[['Rendement Annualisé (%)']])
+
 
 
 
