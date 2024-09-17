@@ -163,7 +163,7 @@ st.pyplot(plt)
 
 # 6. Sélection d'une entreprise pour une analyse
 st.write("## 6. Sélection d'une entreprise")
-selected_stock = st.selectbox("Choisissez une entreprise", tickers)
+selected_stock = st.selectbox("Choisissez une entreprise", tickers, key="selectbox_1")
 
 # Visualiser le rendement cumulé de l'entreprise sélectionnée
 st.write(f"### Visualisation du rendement cumulé pour {selected_stock}")
@@ -184,7 +184,7 @@ st.table(selected_kpi)
 st.write("## 7. Comparaison des entreprises")
 
 # Sélection des entreprises pour comparaison
-selected_stocks = st.multiselect("Choisissez les entreprises à comparer", tickers, default=tickers)
+selected_stocks = st.multiselect("Choisissez les entreprises à comparer", tickers, default=tickers, key="multiselect_1")
 
 if selected_stocks:
     st.write(f"### Comparaison des rendements cumulés : {' vs '.join(selected_stocks)}")
